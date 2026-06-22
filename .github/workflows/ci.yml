@@ -78,23 +78,16 @@ jobs:
         with:
           name: docker-image
           path: ./
+      - name: 设置 SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: 传输 compose + 镜像到服务器
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.prod.yml,simple-web.tar.gz"
-          target: "/opt/simple-web/"
-          strip_components: 0
-          timeout: "60s"
+        run: |
+          scp -o StrictHostKeyChecking=no docker-compose.prod.yml simple-web.tar.gz root@${{ secrets.SSH_HOST }}:/opt/simple-web/
       - name: 加载镜像并启动服务
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+        run: |
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
             cd /opt/simple-web
             echo "=== [1/5] 加载 Docker 镜像 ==="
@@ -119,6 +112,7 @@ jobs:
             echo ""
             echo "=== 运行状态 ==="
             docker compose ps
+          EOF
 
   # ============================================
   # Job 4: 通知
