@@ -83,16 +83,17 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "docker-compose.prod.yml,simple-web.tar.gz"
           target: "/opt/simple-web/"
           strip_components: 0
+          timeout: "60s"
       - name: 加载镜像并启动服务
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
             cd /opt/simple-web
